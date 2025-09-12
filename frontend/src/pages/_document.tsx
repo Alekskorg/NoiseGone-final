@@ -1,3 +1,4 @@
+
 import { Html, Head, Main, NextScript } from 'next/document'
 
 export default function Document() {
@@ -21,6 +22,9 @@ export default function Document() {
   return (
     <Html lang="ru">
       <Head>
+        {/* ИСПРАВЛЕНО: Добавлена SVG иконка прямо в код, чтобы избежать ошибки 404 */}
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔊</text></svg>" />
+        
         <meta name="description" content={`NoiseGone — ${slogan}. Удалите фоновый шум, эхо и другие помехи из ваших аудио и видео записей прямо в браузере.`} />
         <meta property="og:title" content={`NoiseGone — ${slogan}`} />
         <meta property="og:description" content="Быстрая и безопасная очистка аудио на вашем устройстве с помощью AI." />
