@@ -7,7 +7,6 @@ import * as audioUtils from '@/lib/audioUtils';
 
 export type Preset = 'speech' | 'podcast' | 'music';
 
-// Синглтон для FFmpeg
 let ffmpegInstance: FFmpeg | null = null;
 
 export const useFfmpegNoise = () => {
@@ -26,7 +25,6 @@ export const useFfmpegNoise = () => {
       ffmpeg.on('log', ({ message }) => console.log(message));
       ffmpeg.on('progress', ({ progress }) => setProgress(progress)); // 0..1
 
-      // Если файлы лежат в /public/ffmpeg
       await ffmpeg.load({
         coreURL: '/ffmpeg/ffmpeg-core.js',
         wasmURL: '/ffmpeg/ffmpeg-core.wasm',
@@ -54,6 +52,15 @@ export const useFfmpegNoise = () => {
 
       let outputUrl: string | null = null;
 
+      // безопасное удаление файла без exists()
+      const safeDelete = async (path: string) => {
+        try {
+          await ffmpeg.deleteFile(path);
+        } catch {
+          /* ignore */
+        }
+      };
+
       try {
         await ffmpeg.writeFile(inputFileName, await fetchFile(file));
 
@@ -68,7 +75,8 @@ export const useFfmpegNoise = () => {
           case 'speech':
             command = [
               '-i', currentInput,
-              '-af', 'aformat=channel_layouts=mono,afftdn=nf=-20,loudnorm=I=-16:TP=-1.5:LRA=11',
+              '-af',
+              'aformat=channel_layouts=mono,afftdn=nf=-20,loudnorm=I=-16:TP=-1.5:LRA=11',
               outputFileName,
             ];
             break;
@@ -91,8 +99,8 @@ export const useFfmpegNoise = () => {
         // readFile -> Uint8Array
         const data = (await ffmpeg.readFile(outputFileName)) as Uint8Array;
 
-        // ВАЖНО: делаем КОПИЮ, чтобы уйти от SharedArrayBuffer
-        const copy = new Uint8Array(data); // создаёт новый ArrayBuffer
+        // Делаем копию, чтобы гарантированно получить обычный ArrayBuffer (не SharedArrayBuffer)
+        const copy = new Uint8Array(data);
         const blob = new Blob([copy], { type: 'audio/wav' });
 
         outputUrl = URL.createObjectURL(blob);
@@ -102,13 +110,9 @@ export const useFfmpegNoise = () => {
         if (outputUrl) URL.revokeObjectURL(outputUrl);
         throw error;
       } finally {
-        try {
-          if (await ffmpeg.exists(inputFileName)) await ffmpeg.deleteFile(inputFileName);
-          if (await ffmpeg.exists(tempFileName)) await ffmpeg.deleteFile(tempFileName);
-          if (await ffmpeg.exists(outputFileName)) await ffmpeg.deleteFile(outputFileName);
-        } catch (cleanupError) {
-          console.error('Error during FFmpeg file cleanup:', cleanupError);
-        }
+        await safeDelete(inputFileName);
+        await safeDelete(tempFileName);
+        await safeDelete(outputFileName);
       }
     },
     [isReady]
