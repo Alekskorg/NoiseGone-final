@@ -1,24 +1,10 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  productionBrowserSourceMaps: false,
-  
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
-        ],
-      },
-    ];
-  },
+const path = require('path');
 
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false, crypto: false };
+module.exports = {
+  webpack(config) {
+    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
+    config.resolve.alias['@styles'] = path.resolve(__dirname, 'src/styles');
     return config;
   },
 };
 
-module.exports = nextConfig;
