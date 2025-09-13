@@ -76,9 +76,12 @@ export const useFfmpegNoise = () => {
             
             const data = await ffmpeg.readFile(outputFileName);
             
-            // ИСПРАВЛЕНО: Явное приведение типа Uint8Array к BlobPart.
-            // TypeScript теперь понимает, что мы передаем корректные данные.
-            const blob = new Blob([(data as Uint8Array).buffer], { type: 'audio/wav' });
+            // ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ:
+            // Создаем копию буфера, чтобы он был совместим с Blob.
+            // Это решает проблему с SharedArrayBuffer.
+            const dataCopy = new Uint8Array(data as ArrayBufferLike);
+            const blob = new Blob([dataCopy.buffer], { type: 'audio/wav' });
+            
             outputUrl = URL.createObjectURL(blob);
             return outputUrl;
 
