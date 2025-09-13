@@ -1,0 +1,9 @@
+/* src/styles/globals.css */
+* { box-sizing: border-box; }
+html, body, #__next { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #0b0e14;
+  color: #eaeaea;
+}
