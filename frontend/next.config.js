@@ -3,7 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: false,
   
-  // `headers` должна быть функцией верхнего уровня, а не внутри `webpack`
   async headers() {
     return [
       {
@@ -13,8 +12,6 @@ const nextConfig = {
           { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
         ],
       },
-      // Этот блок был в неправильном месте, теперь он не нужен, так как Next.js 
-      // автоматически обрабатывает файлы в /public с правильными заголовками кеширования.
     ];
   },
 
