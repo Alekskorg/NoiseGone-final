@@ -94,14 +94,18 @@ export const useFfmpegNoise = () => {
             break;
         }
 
-        await ffmpeg.exec(command);
+      // читаем результат из вирту FS: вернётся Uint8Array
+const data = (await ffmpeg.readFile(outputFileName)) as Uint8Array;
 
-        // readFile -> Uint8Array
-        const data = (await ffmpeg.readFile(outputFileName)) as Uint8Array;
+// делаем копию, чтобы получить обычный ArrayBuffer (а не SharedArrayBuffer)
+const copy = new Uint8Array(data);
 
-        // Делаем копию, чтобы гарантированно получить обычный ArrayBuffer (не SharedArrayBuffer)
-        const copy = new Uint8Array(data);
-        const blob = new Blob([copy], { type: 'audio/wav' });
+// создаём Blob ИМЕННО из copy.buffer
+const blob = new Blob([copy.buffer], { type: 'audio/wav' });
+
+outputUrl = URL.createObjectURL(blob);
+return outputUrl;
+ 
 
         outputUrl = URL.createObjectURL(blob);
         return outputUrl;
