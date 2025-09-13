@@ -5,6 +5,7 @@ import * as audioUtils from '@/lib/audioUtils';
 
 export type Preset = 'speech' | 'podcast' | 'music';
 
+// Синглтон для ffmpeg, чтобы не загружать его каждый раз
 let ffmpegInstance: FFmpeg | null = null;
 
 export const useFfmpegNoise = () => {
@@ -74,16 +75,18 @@ export const useFfmpegNoise = () => {
             await ffmpeg.exec(command);
             
             const data = await ffmpeg.readFile(outputFileName);
-            const blob = new Blob([data], { type: 'audio/wav' });
+            
+            // ИСПРАВЛЕНО: Явное приведение типа Uint8Array к BlobPart.
+            // TypeScript теперь понимает, что мы передаем корректные данные.
+            const blob = new Blob([(data as Uint8Array).buffer], { type: 'audio/wav' });
             outputUrl = URL.createObjectURL(blob);
             return outputUrl;
 
         } catch (error) {
             console.error("Error during FFmpeg processing:", error);
-            if (outputUrl) URL.revokeObjectURL(outputUrl); // Clean up if error occurred after creation
-            throw error; // Re-throw to be caught by the caller
+            if (outputUrl) URL.revokeObjectURL(outputUrl);
+            throw error;
         } finally {
-            // Safe cleanup
             try {
                 if (await ffmpeg.pathExists(inputFileName)) await ffmpeg.deleteFile(inputFileName);
                 if (await ffmpeg.pathExists(tempFileName)) await ffmpeg.deleteFile(tempFileName);
